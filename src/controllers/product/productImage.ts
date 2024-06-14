@@ -2,7 +2,7 @@ import { Product } from "../../models/Product";
 import { Request, Response, NextFunction } from "express";
 import { BadRequestError } from "../../utils/api-errors";
 import { getPaginated } from "../../utils/paginate";
-import { ProductVariant } from "../../models/ProductVariant";
+import { ProductVariantValues } from "../../models/ProductVariantValue";
 import { ProductImage } from "../../models/ProductImage";
 
 export const Create = async (
@@ -10,7 +10,7 @@ export const Create = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { productUniqueId, variantUniqueId } = req.body;
+  const { productUniqueId, productVariantValueUniqueId } = req.body;
   try {
     let product: any = null;
     let productVariant: any = null;
@@ -24,10 +24,10 @@ export const Create = async (
       },
     });
 
-    if (variantUniqueId) {
-      productVariant = await ProductVariant.scope("withId").findOne({
+    if (productVariantValueUniqueId && product.multipart) {
+      productVariant = await ProductVariantValues.scope("withId").findOne({
         where: {
-          uuid: variantUniqueId,
+          uuid: productVariantValueUniqueId,
         },
 
         attributes: {
@@ -42,41 +42,27 @@ export const Create = async (
       return;
     }
 
-    let productImages: {
-      imageUrl: string;
-      imageAlt?: string;
-      ProductVariantId?: number | null;
-      ProductId: number;
-    }[] = [];
-    if (req.files && req.files?.length) {
-      let filesArray = req.files as any[];
-      filesArray.forEach((file) => {
-        let imageObject: {
-          imageUrl: string;
-          ProductId: number;
-          ProductVariantId?: number;
-        } = {
-          imageUrl: `${process.env.API_URL}media/${file.filename}`,
-          ProductId: product.id,
-        };
-        if (productVariant && productVariant.id) {
-          imageObject.ProductVariantId = productVariant.id;
-        }
-        productImages.push(imageObject);
-      });
+    if(!req.file || !req.file?.fieldname){
+      return res.status(403).send({
+        message:"Please Upload Image File"
+      })
     }
-    let where: { ProductId: string; ProductVariantId?: number } = {
+
+    let imageObject: {
+      url: string;
+      ProductId: number;
+      ProductVariantValueId?: number;
+    } = {
+      url: `${process.env.API_URL}media/${req.file?.fieldname}`,
       ProductId: product.id,
     };
-    if (productVariant) {
-      where["ProductVariantId"] = productVariant.id;
+    if (productVariant && productVariant.id) {
+      imageObject.ProductVariantValueId = productVariant.id;
     }
-    let images = await ProductImage.bulkCreate(productImages);
-    images = await ProductImage.findAll({
-      where,
-    });
 
-    if (images.length) {
+    let images = await ProductImage.create(imageObject);
+
+    if (images) {
       res.send(images);
     } else {
       res.status(403).send({ message: "Error, Bad Request" });
@@ -93,37 +79,44 @@ export const Delete = async (
   next: NextFunction
 ) => {
   try {
-    const { variantUniqueId } = req.query; // variant unique id if we want to narrow down image deleting to specific variant of the product and not all images of the product.
-    const { uid } = req.params; // uid of the product which will all images related to it
-    const productVariant = await ProductVariant.scope("withId").findOne({
-      where: {
-        uuid: variantUniqueId as string,
-      },
-      attributes: {
-        include: ["id"],
-      },
-    });
-
-    const product = await Product.scope("withId").findOne({
-      where: {
-        uuid: uid,
-      },
-      attributes: {
-        include: ["id"],
-      },
-    });
-    if (!product) {
-      res.status(403).send({
-        message: "Product not found",
+    const { productVariantValueUniqueId, productUniqueId } = req.query; // variant unique id if we want to narrow down image deleting to specific variant of the product and not all images of the product.
+    const { uid } = req.params; // uid of the image to delete the product
+    let productVariant = null;
+    if (productVariantValueUniqueId) {
+      productVariant = await ProductVariantValues.scope("withId").findOne({
+        where: {
+          uuid: productVariantValueUniqueId as string,
+        },
+        attributes: {
+          include: ["id"],
+        },
       });
-      return;
     }
 
-    let where: { ProductId: number; ProductVariantId?: number } = {
-      ProductId: product?.id as number,
+    let product = null;
+    if (productUniqueId) {
+      product = await Product.scope("withId").findOne({
+        where: {
+          uuid: productUniqueId as string,
+        },
+        attributes: {
+          include: ["id"],
+        },
+      });
+    }
+
+    let where: {
+      ProductId?: number;
+      ProductVariantValueUniqueId?: number;
+      uuid: string;
+    } = {
+      uuid: uid,
     };
     if (productVariant) {
-      where["ProductVariantId"] = productVariant.id;
+      where["ProductVariantValueUniqueId"] = productVariant.id;
+    }
+    if (product) {
+      where["ProductId"] = product?.id;
     }
 
     const result = await ProductImage.destroy({
@@ -146,13 +139,16 @@ export const List = async (req: Request, res: Response, next: NextFunction) => {
     const sortBy = req.query.sortBy ? req.query.sortBy : "createdAt";
     const sortAs = req.query.sortAs ? (req.query.sortAs as string) : "DESC";
 
-    const { productUniqueId, variantUniqueId } = req.query;
+    const { productUniqueId, productVariantValueUniqueId } = req.query;
 
-    const productVariant = await ProductVariant.scope("withId").findOne({
-      where: {
-        uuid: variantUniqueId as string,
-      },
-    });
+    let productVariant = null;
+    if (productVariantValueUniqueId) {
+      productVariant = await ProductVariantValues.scope("withId").findOne({
+        where: {
+          uuid: productVariantValueUniqueId as string,
+        },
+      });
+    }
     const product = await Product.scope("withId").findOne({
       where: {
         uuid: productUniqueId as string,
@@ -160,20 +156,28 @@ export const List = async (req: Request, res: Response, next: NextFunction) => {
     });
     const where: {
       ProductId?: number;
-      ProductVariantId?: number;
+      productVariantValueId?: number;
     } = {};
     if (product?.id) {
       where.ProductId = product.id;
     }
-    if (productVariant?.id) {
-      where.ProductVariantId = productVariant.id;
+    if (productVariant && productVariant?.id) {
+      where.productVariantValueId = productVariant.id;
     }
 
     const { count: total, rows: images } = await ProductImage.findAndCountAll({
       where,
       attributes: {
-        exclude: ["ProductVariantId", "id", "ProductId"],
+        exclude: ["ProductVariantValueId", "id", "ProductId"],
       },
+      include: [
+        {
+          model: Product,
+          attributes: {
+            exclude: ["id", "ProductId"],
+          },
+        },
+      ],
       offset: offset,
       limit: limit,
       order: [[sortBy as string, sortAs]],
@@ -184,15 +188,4 @@ export const List = async (req: Request, res: Response, next: NextFunction) => {
     console.log(error.message);
     res.status(500).send({ message: error });
   }
-};
-
-const getData = (instance: any) => {
-  delete instance.dataValues.id;
-  delete instance.dataValues.CategoryId;
-  return { data: instance };
-};
-const getDetailData = (instance: any) => {
-  delete instance.dataValues.id;
-  delete instance.dataValues.ProductId;
-  return { data: instance };
 };

@@ -2,7 +2,7 @@ import type { Migration } from "../umguz";
 import { DataTypes, Sequelize, UUIDV4 } from "sequelize";
 
 export const up: Migration = async ({ context }: { context: Sequelize }) => {
-  await context.getQueryInterface().createTable("VariantValue", {
+  await context.getQueryInterface().createTable("ProductImage", {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -14,28 +14,29 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
       defaultValue: UUIDV4,
       unique: true,
     },
-    variantSku: {
-      type: DataTypes.STRING,
-    },
-    variantPrice: {
-      type: DataTypes.DECIMAL(12, 2), // variantPrice can be null if for some variant value it is same as basePrice (which is in product table)
-    },
-    variantQuantity: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull:false
-    },
-    value: {
+    url: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-
-    ProductVariantId: {
+    alt: {
+      type: DataTypes.STRING,
+    },
+    ProductVariantValueId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "ProductVariant",
+        model: "ProductVariantValues",
         key: "id",
       },
     },
+    ProductId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: "Products",
+        key: "id",
+      },
+      allowNull: false,
+    },
+
     createdAt: {
       type: DataTypes.DATE,
     },
@@ -46,5 +47,5 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
 };
 
 export const down: Migration = async ({ context }: { context: Sequelize }) => {
-  await context.getQueryInterface().dropTable("VariantValue");
+  await context.getQueryInterface().dropTable("ProductImage");
 };

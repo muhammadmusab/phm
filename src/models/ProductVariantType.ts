@@ -7,37 +7,42 @@ import {
   InferCreationAttributes,
   UUIDV4,
 } from "sequelize";
-interface ProductAttributeModel
+interface ProductVariantTypeModel
   extends Model<
-    InferAttributes<ProductAttributeModel>,
-    InferCreationAttributes<ProductAttributeModel>
+    InferAttributes<ProductVariantTypeModel>,
+    InferCreationAttributes<ProductVariantTypeModel>
   > {
   id?: CreationOptional<number>;
+  ProductId?: CreationOptional<number>;
   uuid: CreationOptional<string>;
-  name: string; // 'weight' | 'Display Type' 
-  value: string|number; // '10gram' | 'Qled' 
-  ProductId: number | null;
+  ProductTypeId?: number;
+  elementType: string;
 }
-export const ProductAttribute = sequelize.define<ProductAttributeModel>(
-  "ProductAttribute",
+export const ProductVariantType = sequelize.define<ProductVariantTypeModel>(
+  "ProductVariantTypes",
   {
     uuid: {
       type: DataTypes.UUID,
       defaultValue: UUIDV4,
       unique: true,
     },
-    name: {
-      // 'weight' | 'Display Type' 
-      type: DataTypes.STRING,
+    ProductTypeId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: "ProductTypes",
+        key: "id",
+      },
     },
-    value: {
-      // '10gram' | 'Qled' 
+    elementType: {
+      // html element type like select ,range ,number, radio, checkbox,
       type: DataTypes.STRING,
       allowNull: false,
+      // unique: true,
     },
     ProductId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: "Products",
         key: "id",
@@ -45,9 +50,9 @@ export const ProductAttribute = sequelize.define<ProductAttributeModel>(
     },
   },
   {
-    freezeTableName:true,
+    freezeTableName: true,
     defaultScope: {
-      attributes: { exclude: ["id", "ProductId"] },
+      attributes: { exclude: ["id", "ProductId","ProductTypeId"] },
     },
     scopes: {
       withId: {

@@ -2,7 +2,7 @@ import type { Migration } from "../umguz";
 import { DataTypes, Sequelize, UUIDV4 } from "sequelize";
 
 export const up: Migration = async ({ context }: { context: Sequelize }) => {
-  await context.getQueryInterface().createTable("ProductData", {
+  await context.getQueryInterface().createTable("SkuVariations", {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -14,23 +14,28 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
       defaultValue: UUIDV4,
       unique: true,
     },
-    specifications: {
-      type: DataTypes.JSON,
-      allowNull: false,
-    },
-    overview: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    highlights: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-    },
-
     ProductId: {
       type: DataTypes.INTEGER,
-      
+      allowNull: false,
       references: {
         model: "Products",
+        key: "id",
+      },
+    },
+    ProductVariantValueId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "ProductVariantValues",
+        key: "id",
+      },
+    },
+
+    ProductSkuId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "ProductSkus",
         key: "id",
       },
     },
@@ -41,20 +46,8 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
       type: DataTypes.DATE,
     },
   });
-
-  await context.getQueryInterface().addConstraint('ProductData', {
-    fields: ['ProductId'],
-    type: 'foreign key',
-    name: 'ProductData_ProductId_fkey',
-    references: {
-      table: 'Products',
-      field: 'id'
-    },
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE'
-  });
 };
 
 export const down: Migration = async ({ context }: { context: Sequelize }) => {
-  await context.getQueryInterface().dropTable("Tokens");
+  await context.getQueryInterface().dropTable("SkuVariations");
 };

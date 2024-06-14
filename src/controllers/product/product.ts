@@ -4,11 +4,11 @@ import { Request, Response, NextFunction } from "express";
 import { BadRequestError } from "../../utils/api-errors";
 import { getValidUpdates } from "../../utils/validate-updates";
 import { getPaginated } from "../../utils/paginate";
-import { ProductData } from "../../models/ProductData";
-import { ProductVariant } from "../../models/ProductVariant";
-import { VariantValue } from "../../models/VariantValue";
-import { ProductAttribute } from "../../models/ProductAttribute";
+
+import { ProductSkus } from "../../models/ProductSku";
 import { ProductImage } from "../../models/ProductImage";
+import { SkuVariations } from "../../models/SkuVariation";
+
 export const Create = async (
   req: Request,
   res: Response,
@@ -16,31 +16,64 @@ export const Create = async (
 ) => {
   try {
     const {
-      sku, //model number (following noon.com)
-      title, //brand
-      totalQuantity,
-      description,
+      title,
+      status,
+      baseQuantity = null,
+      basePrice = null,
       oldPrice = null,
-      currentPrice,
+      sku = null, //model number (following noon.com)
+      brand, //brand
       categoryUniqueId,
-      attributes,
-      specifications,
       overview,
       highlights,
+      multipart,
+      specifications,
     } = req.body;
 
-    const body = {
-      sku,
-      title,
-      slug: description
+    const body: {
+      title: string;
+      status?: string;
+      baseQuantity?: number;
+      basePrice?: number;
+      oldPrice?: number;
+      sku?: string;
+      slug: string;
+      brand: string;
+      CategoryId?: number | null;
+      overview: string;
+      highlights: string[];
+      multipart: any;
+      specifications: Record<string, any>[];
+    } = {
+      specifications,
+      highlights,
+      overview,
+      multipart: req.body.multipart === true ? true : false,
+      brand,
+      slug: title
         .replaceAll(" ", "-")
         .replaceAll("/", "-")
         .replaceAll(",", "-"),
-      totalQuantity,
-      description,
-      oldPrice,
-      currentPrice,
+      title,
     };
+    if (status) {
+      body["status"] = status;
+    }
+    if (!body.multipart) {
+      body.basePrice = basePrice;
+      body.oldPrice = oldPrice;
+      body.baseQuantity = baseQuantity;
+      body.sku = sku;
+    } else if (
+      body.multipart &&
+      (body.basePrice || body.oldPrice || body.baseQuantity || body.sku)
+    ) {
+      return res.status(403).send({
+        message:
+          "You can't set base price and base quantity for product with variant",
+        data: null,
+      });
+    }
 
     const category = await Category.scope("withId").findOne({
       where: {
@@ -53,47 +86,18 @@ export const Create = async (
 
     if (category?.id) {
       //@ts-ignore
-      body["CategoryId"] = category.id as string;
+      body.CategoryId = category.id as string;
     }
-
-    const product = await Product.create(body);
-
-    let productAttributes: any = null;
-    if (attributes && attributes.length) {
-      const productAttributeValues = attributes.map((item: any) => ({
-        name: item.name,
-        value: item.value,
-        ProductId: product.id,
-      }));
-
-      productAttributes = await ProductAttribute.bulkCreate(
-        productAttributeValues
-      );
-
-      productAttributes = await ProductAttribute.findAll({
-        where: {
-          ProductId: product?.id,
-        },
-      });
-    }
-
-    const productData = await ProductData.create({
-      ProductId: product?.id,
-      highlights: highlights,
-      overview: overview,
-      specifications: specifications,
-    });
+    const product = await Product.create({ ...body });
 
     const { data } = getData(product);
 
-    const { data: productDetail } = getDetailData(productData);
-
     res.status(201).send({
       message: "Success",
-      data: { ...data, productDetail, productAttributes },
+      data: { ...data },
     });
   } catch (error: any) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).send({ message: error });
   }
 };
@@ -103,18 +107,44 @@ export const Update = async (
   next: NextFunction
 ) => {
   try {
+    const { uid } = req.params;
+    const product = await Product.findOne({
+      where: {
+        uuid: uid,
+      },
+    });
+    if (!product) {
+      return res.status(404).send({
+        message: "Product Not Found",
+        data: null,
+      });
+    } else if (
+      product.multipart &&
+      (req.body.basePrice ||
+        req.body.oldPrice ||
+        req.body.baseQuantity ||
+        req.body.sku)
+    ) {
+      return res.status(403).send({
+        message:
+          "You can't set base price and base quantity for product with variant",
+        data: null,
+      });
+    }
     const validUpdates = [
-      "sku",
       "title",
-      "slug",
-      "totalQuantity",
-      "description",
+      "status",
+      "baseQuantity",
+      "basePrice",
       "oldPrice",
-      "currentPrice",
+      "sku",
+      "brand",
       "categoryUniqueId",
+      "overview",
+      "highlights",
     ];
     const validBody = getValidUpdates(validUpdates, req.body);
-    const { uid } = req.params;
+
     // if we want to change the parent of the current category
     if (req.body.categoryUniqueId) {
       const category = await Category.scope("withId").findOne({
@@ -162,8 +192,7 @@ export const Delete = async (
       const err = new BadRequestError("Bad Request");
       res.status(err.status).send({ message: err.message });
     }
-  } catch (error:any) {
-
+  } catch (error: any) {
     res.status(500).send({ message: error.message });
   }
 };
@@ -180,42 +209,30 @@ export const Get = async (req: Request, res: Response, next: NextFunction) => {
           model: Category,
           // as: "parent",
           attributes: {
-            exclude: ["id","parentId"],
-          },
-        },
-        {
-          model: ProductData,
-          attributes: {
-            exclude: ["id", "ProductId"],
+            exclude: ["id", "parentId"],
           },
         },
         {
           model: ProductImage,
           attributes: {
-            exclude: ["id", "ProductId"],
+            exclude: ["id", "ProductId", "ProductVariantValueId"],
           },
         },
         {
-          model: ProductVariant,
+          model: ProductSkus,
 
           attributes: {
             exclude: ["id", "ProductId"],
           },
           include: [
             {
-              model: VariantValue,
+              model: SkuVariations,
 
               attributes: {
-                exclude: ["id", "ProductVariantId"],
+                exclude: ["id", "ProductVariantValueId", "ProductSkuId"],
               },
             },
           ],
-        },
-        {
-          model: ProductAttribute,
-          attributes: {
-            exclude: ["id", "ProductId"],
-          },
         },
       ],
     });
@@ -254,47 +271,35 @@ export const List = async (req: Request, res: Response, next: NextFunction) => {
       where: {
         CategoryId: category?.id,
       },
-      // attributes: {
-      //   exclude: ["CategoryId", "id"],
-      // },
       include: [
         {
           model: Category,
+          // as: "parent",
           attributes: {
-            exclude: ["id","parentId"],
+            exclude: ["id", "parentId"],
           },
         },
         {
           model: ProductImage,
           attributes: {
-            exclude: ["id","ProductId"],
+            exclude: ["id", "ProductId", "ProductVariantValueId"],
           },
         },
         {
-          model: ProductVariant,
+          model: ProductSkus,
+
           attributes: {
             exclude: ["id", "ProductId"],
           },
           include: [
             {
-              model: VariantValue,
+              model: SkuVariations,
+
               attributes: {
-                exclude: ["id", "ProductVariantId"],
+                exclude: ["id", "ProductVariantValueId", "ProductSkuId","ProductId"],
               },
             },
           ],
-        },
-        {
-          model: ProductData,
-          attributes: {
-            exclude: ["id", "ProductId"],
-          },
-        },
-        {
-          model: ProductAttribute,
-          attributes: {
-            exclude: ["id", "ProductId"],
-          },
         },
       ],
       offset: offset,
@@ -313,9 +318,4 @@ const getData = (instance: any) => {
   delete instance.dataValues.id;
   delete instance.dataValues.CategoryId;
   return { data: instance.dataValues };
-};
-const getDetailData = (instance: any) => {
-  delete instance.dataValues.id;
-  delete instance.dataValues.ProductId;
-  return { data: instance };
 };

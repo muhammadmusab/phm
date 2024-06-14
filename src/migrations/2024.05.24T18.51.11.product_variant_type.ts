@@ -2,7 +2,7 @@ import type { Migration } from "../umguz";
 import { DataTypes, Sequelize, UUIDV4 } from "sequelize";
 
 export const up: Migration = async ({ context }: { context: Sequelize }) => {
-  await context.getQueryInterface().createTable("ProductImage", {
+  await context.getQueryInterface().createTable("ProductVariantTypes", {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -14,22 +14,23 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
       defaultValue: UUIDV4,
       unique: true,
     },
-    imageUrl: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    imageAlt: {
-      type: DataTypes.STRING,
-    },
-    ProductVariantId: {
+    ProductTypeId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
-        model: "ProductVariant",
+        model: "ProductTypes",
         key: "id",
       },
     },
+    elementType: {
+      // html element type like select ,range ,number, radio, checkbox,
+      type: DataTypes.STRING,
+      allowNull: false,
+      // unique: true,
+    },
     ProductId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: "Products",
         key: "id",
@@ -45,5 +46,5 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
 };
 
 export const down: Migration = async ({ context }: { context: Sequelize }) => {
-  await context.getQueryInterface().dropTable("ProductImage");
+  await context.getQueryInterface().dropTable("ProductVariantTypes");
 };

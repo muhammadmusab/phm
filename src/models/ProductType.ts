@@ -7,18 +7,17 @@ import {
   InferCreationAttributes,
   UUIDV4,
 } from "sequelize";
-interface ProductVariantModel
+interface ProductTypesModel
   extends Model<
-    InferAttributes<ProductVariantModel>,
-    InferCreationAttributes<ProductVariantModel>
+    InferAttributes<ProductTypesModel>,
+    InferCreationAttributes<ProductTypesModel>
   > {
   id?: CreationOptional<number>;
   uuid: CreationOptional<string>;
   type: string; // 'ssd' | 'ram' | 'color' | 'size'
-  ProductId: number | null;
 }
-export const ProductVariant = sequelize.define<ProductVariantModel>(
-  "ProductVariant",
+export const ProductTypes = sequelize.define<ProductTypesModel>(
+  "ProductTypes",
   {
     uuid: {
       type: DataTypes.UUID,
@@ -26,23 +25,26 @@ export const ProductVariant = sequelize.define<ProductVariantModel>(
       unique: true,
     },
     type: {
+      //general table for adding all the types of the products
       // 'ssd' | 'ram' | 'color' | 'size'
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    ProductId: {
-      type: DataTypes.INTEGER,
-      allowNull:false,
-      references: {
-        model: "Products",
-        key: "id",
+      unique: true,
+      get(this) {
+        const value = this.getDataValue("type").replace("_", " ");
+        return value
+          .split(" ")
+          .map((word) => {
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+          })
+          .join(" ");
       },
     },
   },
   {
-    freezeTableName:true,
+    freezeTableName: true,
     defaultScope: {
-      attributes: { exclude: ["id", "ProductId"] },
+      attributes: { exclude: ["id"] },
     },
     scopes: {
       withId: {

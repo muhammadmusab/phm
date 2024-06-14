@@ -3,32 +3,69 @@ import * as yup from "yup";
 export const createProductSchema = yup.object({
   body: yup
     .object({
-      sku: yup.string().required(),
       title: yup.string().required(),
       slug: yup.string(),
-      totalQuantity: yup.number().required(),
-      description: yup.string(),
-      oldPrice: yup.number(),
-      currentPrice: yup.number().required(),
+      brand: yup.string().required(),
+      status: yup.string().nullable(),
+      multipart: yup.boolean().required(),
+      sku: yup.string().when("multipart", {
+        is: 0,
+        then(schema) {
+          return schema.required();
+        },
+      }).nullable(),
+      baseQuantity: yup.number().when("multipart", {
+        is: 0,
+        then(schema) {
+          return schema.required();
+        },
+      }).nullable(),
+      basePrice: yup.number().when("multipart", {
+        is: 0,
+        then(schema) {
+          return schema.required();
+        },
+      }).nullable(),
+      oldPrice: yup.number().when("multipart", {
+        is: 0,
+        then(schema) {
+          return schema.required();
+        },
+      }).nullable(),
       categoryUniqueId: yup.string().uuid().required(),
-      specifications: yup.array(yup.object()).required(),
-      attributes: yup.array(yup.object()),
+      specifications: yup
+        .array(
+          yup.object({
+            label: yup.string().required(),
+            value: yup.string().required(),
+          })
+        )
+        .required(),
       highlights: yup.array(yup.string()).required(),
       overview: yup.string().required(),
     })
-    .required(),
+   
 });
 export const updateProductSchema = yup.object({
   body: yup
     .object({
-      sku: yup.string(),
       title: yup.string(),
       slug: yup.string(),
-      totalQuantity: yup.number(),
-      description: yup.string(),
+      brand: yup.string(),
+      status: yup.string(),
+      sku: yup.string(),
+      baseQuantity: yup.number(),
+      basePrice: yup.number(),
       oldPrice: yup.number(),
-      currentPrice: yup.number(),
       categoryUniqueId: yup.string().uuid(),
+      specifications: yup.array(
+        yup.object({
+          key: yup.string().required(),
+          value: yup.string().required(),
+        })
+      ),
+      highlights: yup.array(yup.string()),
+      overview: yup.string(),
     })
     .required(),
   params: yup.object({

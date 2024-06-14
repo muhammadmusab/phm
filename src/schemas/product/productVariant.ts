@@ -3,48 +3,52 @@ import * as yup from "yup";
 export const createProductVariantSchema = yup.object({
   body: yup
     .object({
+      productVariantTypeUniqueId: yup.string().uuid().required(),
       productUniqueId: yup.string().uuid().required(),
-      type: yup.string().required(),
-      value: yup.mixed().required(),
-      variantSku: yup.string().required(),
-      variantPrice: yup.number(),
-      variantQuantity: yup.number().required(),
+      value: yup.string().required(),
+      oldPrice: yup.number().required(),
+      currentPrice: yup.number().required(),
+      quantity: yup.number().required(),
+      sku: yup.string().required(),
+    })
+    .required(),
+});
+export const assignVariantSchema = yup.object({
+  body: yup
+    .object({
+      productVariantValueUniqueId: yup.string().uuid().required(),
+      productSkuUniqueId: yup.string().uuid().required(),
+      productUniqueId: yup.string().uuid().required(),
     })
     .required(),
 });
 export const updateProductVariantSchema = yup.object({
   body: yup
     .object({
-        productUniqueId: yup.string().uuid().required(),
-        type: yup.string(),
-        value: yup.mixed(),
-        variantSku: yup.string(),
-        variantPrice: yup.number(),
-        variantQuantity: yup.number(),
+      value: yup.string(),
+      oldPrice: yup.number(),
+      currentPrice: yup.number(),
+      quantity: yup.number(),
     })
     .required(),
   params: yup.object({
-    uid: yup.string().uuid().required(), //uuid of the ProductVariant
+    uid: yup.string().uuid().required(), //uuid of the Product SKu
   }),
 });
 
 export const deleteProductVariantSchema = yup.object({
-  params: yup.object({
-    uid: yup.string().uuid().required(), //uuid of the ProductVariant
+  body: yup.object({
+    productVariantValueUniqueId: yup.string().uuid().required(), //uuid of the Product
+    productSkuUniqueId: yup.string().uuid().required(), //uuid of the Product
   }),
 });
 export const getProductVariantSchema = yup.object({
   params: yup.object({
-    uid: yup.string().uuid().required(),
+    uid: yup.string().uuid().required(), //uuid of the Product SKu
   }),
 });
-
 export const listProductVariantSchema = yup.object({
-  query: yup.object({
-    page: yup.number().required(),
-    limit: yup.number().required(),
-    sortBy: yup.string(),
-    sortAs: yup.string().oneOf(["DESC", "ASC"]),
-    productUniqueId: yup.string().required(),
+  params: yup.object({
+    uid: yup.string().uuid().required(), // uid of product
   }),
 });

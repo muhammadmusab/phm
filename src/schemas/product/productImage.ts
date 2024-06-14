@@ -4,7 +4,7 @@ export const createProductImageSchema = yup.object({
   body: yup
     .object({
       productUniqueId: yup.string().uuid().required(),
-      variantUniqueId: yup.string().uuid(),
+      productVariantValueId: yup.string().uuid(),
     })
     .required(),
     // files: yup.array().min(1, 'File is required').required('File is required'),
@@ -15,7 +15,7 @@ export const deleteProductImageSchema = yup.object({
     uid: yup.string().uuid().required(), //uuid of the product to delete the images
   }),
   query: yup.object({
-    variantUniqueId: yup.string().uuid(), //uuid of the ProductImage
+    ProductVariantValueId: yup.string().uuid(), //uuid of the product variant value to delete specific ids
   }),
 });
 
@@ -26,6 +26,6 @@ export const listProductImageSchema = yup.object({
     sortBy: yup.string(),
     sortAs: yup.string().oneOf(["DESC", "ASC"]),
     productUniqueId: yup.string().uuid().required(),
-    variantUniqueId:yup.string().uuid()
+    ProductVariantValueId:yup.string().uuid()
   }),
 });

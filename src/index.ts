@@ -59,24 +59,25 @@ import categoryRoutes from './routes/category';
 import filterRoutes from './routes/filter';
 // product routes
 import productRoutes from './routes/product/product'
-import productAttributeRoutes from './routes/product/productAttribute'
-import productDataRoutes from './routes/product/productData'
 import productImageRoutes from './routes/product/productImage'
 import productVariantRoutes from './routes/product/productVariant'
+import productVariantTypeRoutes from './routes/product/productVariantType'
+import productTypesRoutes from './routes/product/productTypes'
+import productSkuRoutes from './routes/product/productSku'
 
 
 app.use('/v1/api/auth', authRoutes);
 app.use('/v1/api/user', userRoutes);
 app.use('/v1/api/address', addressRoutes);
 app.use('/v1/api/category', categoryRoutes);
-
 app.use('/v1/api/filter', filterRoutes);
 // product
 app.use('/v1/api/product', productRoutes);
-app.use('/v1/api/product/attribute', productAttributeRoutes);
-app.use('/v1/api/product/data', productDataRoutes);
 app.use('/v1/api/product/image', productImageRoutes);
+app.use('/v1/api/product/types', productTypesRoutes);
 app.use('/v1/api/product/variant', productVariantRoutes);
+app.use('/v1/api/product/variant-type', productVariantTypeRoutes);
+app.use('/v1/api/product/sku', productSkuRoutes);
 
 
 

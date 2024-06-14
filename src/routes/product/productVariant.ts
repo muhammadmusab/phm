@@ -2,17 +2,20 @@ import express from "express";
 import basicAuthMiddleware from "../../middlewares/basic-auth-middleware";
 import {
   Create,
-  Get,
   Update,
+  Get,
   Delete,
   List,
+  AssignVariants,
+  AssignedList,
 } from "../../controllers/product/productVariant";
 import { validate } from "../../middlewares/validate-middleware";
 import {
   createProductVariantSchema,
+  assignVariantSchema,
+  deleteProductVariantSchema,
   getProductVariantSchema,
   updateProductVariantSchema,
-  deleteProductVariantSchema,
   listProductVariantSchema,
 } from "../../schemas/product/productVariant";
 
@@ -24,13 +27,18 @@ router.post(
   basicAuthMiddleware,
   Create
 );
+router.post(
+  "/assign",
+  validate(assignVariantSchema),
+  basicAuthMiddleware,
+  AssignVariants
+);
+
 router.get(
   "/get/:uid",
   validate(getProductVariantSchema),
-  basicAuthMiddleware,
   Get
 );
-
 router.put(
   "/update/:uid",
   validate(updateProductVariantSchema),
@@ -45,6 +53,7 @@ router.delete(
   Delete
 );
 
-router.get("/list", validate(listProductVariantSchema), List);
+router.get("/list/:uid", validate(listProductVariantSchema), List);
+router.get("/assigned-list/:uid", validate(listProductVariantSchema), AssignedList);
 
 export default router;

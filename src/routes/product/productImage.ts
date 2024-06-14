@@ -11,11 +11,12 @@ import { uploadMiddleware } from '../../middlewares/upload-middleware';
 const router = express.Router();
 router.post(
   "/create",
-  uploadMiddleware().array('productImages'),
+  uploadMiddleware().single('productImage'),
   validate(createProductImageSchema),
   basicAuthMiddleware,
   Create
 );
+
 router.delete(
   "/delete/:uid",
   validate(deleteProductImageSchema),

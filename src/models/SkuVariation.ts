@@ -7,53 +7,56 @@ import {
   InferCreationAttributes,
   UUIDV4,
 } from "sequelize";
-interface ProductImageModel
+interface SkuVariationsModel
   extends Model<
-    InferAttributes<ProductImageModel>,
-    InferCreationAttributes<ProductImageModel>
+    InferAttributes<SkuVariationsModel>,
+    InferCreationAttributes<SkuVariationsModel>
   > {
   id?: CreationOptional<number>;
   uuid: CreationOptional<string>;
-  url: string|null;
-  alt?: CreationOptional<string>;
-  ProductVariantValueId?: CreationOptional<number | null>;
-  ProductId: number;
+  ProductVariantValueId?: number | null;
+  ProductId?: number | null;
+  ProductSkuId?: number | null;
 }
-export const ProductImage = sequelize.define<ProductImageModel>(
-  "ProductImage",
+export const SkuVariations = sequelize.define<SkuVariationsModel>(
+  "SkuVariations",
   {
     uuid: {
       type: DataTypes.UUID,
       defaultValue: UUIDV4,
       unique: true,
     },
-    url: {
-      type: DataTypes.STRING,
+    ProductId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-    },
-    alt: {
-      type: DataTypes.STRING,
+      references: {
+        model: "Products",
+        key: "id",
+      },
     },
     ProductVariantValueId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: "ProductVariantValues",
         key: "id",
       },
     },
-    ProductId: {
+    ProductSkuId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
-        model: "Products",
+        model: "ProductSkus",
         key: "id",
       },
-      allowNull:false,
     },
   },
   {
     freezeTableName: true,
     defaultScope: {
-      attributes: { exclude: ["id", "ProductVariantValueId", "ProductId"] },
+      attributes: {
+        exclude: ["id", "ProductId", "ProductSkuId", "ProductVariantValueId"],
+      },
     },
     scopes: {
       withId: {

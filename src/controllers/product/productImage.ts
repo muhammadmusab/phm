@@ -42,10 +42,10 @@ export const Create = async (
       return;
     }
 
-    if(!req.file || !req.file?.fieldname){
+    if (!req.file || !req.file?.fieldname) {
       return res.status(403).send({
-        message:"Please Upload Image File"
-      })
+        message: "Please Upload Image File",
+      });
     }
 
     let imageObject: {
@@ -53,17 +53,22 @@ export const Create = async (
       ProductId: number;
       ProductVariantValueId?: number;
     } = {
-      url: `${process.env.API_URL}media/${req.file?.fieldname}`,
+      url: `${process.env.API_URL}media/${req.file?.filename}`,
       ProductId: product.id,
     };
     if (productVariant && productVariant.id) {
       imageObject.ProductVariantValueId = productVariant.id;
     }
 
-    let images = await ProductImage.create(imageObject);
+    let image = await ProductImage.create(imageObject);
 
-    if (images) {
-      res.send(images);
+
+    delete image.dataValues.ProductVariantValueId;
+    delete image.dataValues.ProductId;
+    delete image.dataValues.id;
+
+    if (image) {
+      res.send(image);
     } else {
       res.status(403).send({ message: "Error, Bad Request" });
     }

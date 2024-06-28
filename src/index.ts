@@ -64,6 +64,7 @@ import productVariantRoutes from './routes/product/productVariant'
 import productVariantTypeRoutes from './routes/product/productVariantType'
 import productTypesRoutes from './routes/product/productTypes'
 import productSkuRoutes from './routes/product/productSku'
+import productReviewRoutes from './routes/product/productReview'
 
 
 app.use('/v1/api/auth', authRoutes);
@@ -78,6 +79,7 @@ app.use('/v1/api/product/types', productTypesRoutes);
 app.use('/v1/api/product/variant', productVariantRoutes);
 app.use('/v1/api/product/variant-type', productVariantTypeRoutes);
 app.use('/v1/api/product/sku', productSkuRoutes);
+app.use('/v1/api/product/review', productReviewRoutes);
 
 
 

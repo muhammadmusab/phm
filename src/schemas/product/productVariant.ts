@@ -16,9 +16,16 @@ export const createProductVariantSchema = yup.object({
 export const assignVariantSchema = yup.object({
   body: yup
     .object({
-      productVariantValueUniqueId: yup.string().uuid().required(),
+      productVariantValueUniqueIds: yup.array(yup.string().uuid()).required(),
       productSkuUniqueId: yup.string().uuid().required(),
       productUniqueId: yup.string().uuid().required(),
+    })
+    .required(),
+});
+export const setDefaultVariantSchema = yup.object({
+  body: yup
+    .object({
+      productSkuUniqueId: yup.string().uuid().required(),
     })
     .required(),
 });
@@ -48,7 +55,11 @@ export const getProductVariantSchema = yup.object({
   }),
 });
 export const listProductVariantSchema = yup.object({
-  params: yup.object({
-    uid: yup.string().uuid().required(), // uid of product
+  body: yup.object({
+    productUniqueId: yup.string().uuid().required(), // uid of product
+    productVariantValueUniqueIds: yup.array(yup.string().uuid().required()),
+  }),
+  query: yup.object({
+    separate: yup.boolean(),
   }),
 });

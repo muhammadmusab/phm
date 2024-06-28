@@ -79,8 +79,9 @@ export const deleteProductSchema = yup.object({
   }),
 });
 export const getProductSchema = yup.object({
-  params: yup.object({
-    uid: yup.string().uuid().required(),
+  body: yup.object({
+    productUniqueId: yup.string().uuid().required(),
+    productVariantValueUniqueIds: yup.array(yup.string().uuid().required()),
   }),
 });
 

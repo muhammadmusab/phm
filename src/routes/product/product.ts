@@ -24,8 +24,8 @@ router.post(
   basicAuthMiddleware,
   Create
 );
-router.get(
-  "/get/:uid",
+router.post(
+  "/get",
   validate(getProductSchema),
   basicAuthMiddleware,
   Get

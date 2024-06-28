@@ -8,6 +8,11 @@ import { getPaginated } from "../../utils/paginate";
 import { ProductSkus } from "../../models/ProductSku";
 import { ProductImage } from "../../models/ProductImage";
 import { SkuVariations } from "../../models/SkuVariation";
+import { ProductVariantValues } from "../../models/ProductVariantValue";
+import { Op, QueryTypes } from "sequelize";
+import { sequelize } from "../../config/db";
+import { ProductTypes } from "../../models/ProductType";
+import { ProductVariantType } from "../../models/ProductVariantType";
 
 export const Create = async (
   req: Request,
@@ -26,7 +31,6 @@ export const Create = async (
       categoryUniqueId,
       overview,
       highlights,
-      multipart,
       specifications,
     } = req.body;
 
@@ -198,44 +202,121 @@ export const Delete = async (
 };
 export const Get = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { uid } = req.params;
+    const { productUniqueId, productVariantValueUniqueIds } = req.body;
 
-    const product = await Product.scope("withId").findOne({
+    let product = await Product.scope("withId").findOne({
       where: {
-        uuid: uid,
+        uuid: productUniqueId,
+      }
+    });
+    if (product && product?.multipart === false) {
+     delete product.dataValues.id
+     delete product.dataValues.CategoryId
+      return res.send({ message: "Success", data: product });
+    }
+
+    const query = `
+              SELECT pt."type" as "type",  array_agg(json_build_object('productVariantValueUniqueId',pvv.uuid,'value',pvv."value")) as "ProductVariants"
+              FROM "ProductVariantTypes" as pvt
+                  JOIN "ProductVariantValues" as pvv ON pvv."ProductVariantTypeId" = pvt."id"
+                  JOIN "ProductTypes" as pt ON pvt."ProductTypeId" = pt."id"
+              WHERE pvt."ProductId"=${product?.id}
+              GROUP BY pvt."ProductTypeId",pt."type";
+              `;
+
+    const [productVariantsWithTypes] = await sequelize.query(query, {
+      type: QueryTypes.RAW,
+    });
+    let productVariantValue = null;
+    let productVariantValueIds = null;
+    if (productVariantValueUniqueIds) {
+      productVariantValue = await ProductVariantValues.findAll({
+        where: {
+          uuid: productVariantValueUniqueIds,
+        },
+        attributes: ["id"],
+      });
+      productVariantValueIds = productVariantValue.map(
+        (item) => item.dataValues.id
+      );
+    }
+
+    let where: {
+      combinationIds?: number[];
+      setAsDefault?: boolean;
+    } = {};
+
+    if (
+      productVariantValueUniqueIds &&
+      productVariantValueUniqueIds.length &&
+      productVariantValueIds &&
+      productVariantValueIds.length
+    ) {
+      where.combinationIds = productVariantValueIds as number[];
+    } else {
+      where.setAsDefault = true;
+    }
+
+    // finding sku for this product
+
+    const productSku = await SkuVariations.findOne({
+      where,
+      attributes: {
+        exclude: [
+          "combinationIds",
+          "uuid",
+          "setAsDefault",
+          "createdAt",
+          "updatedAt",
+        ],
+      },
+      include: [
+        {
+          model: ProductSkus,
+        },
+      ],
+    });
+
+    product = await Product.scope("withId").findOne({
+      where: {
+        uuid: productUniqueId,
       },
       include: [
         {
           model: Category,
-          // as: "parent",
           attributes: {
             exclude: ["id", "parentId"],
           },
         },
+
         {
-          model: ProductImage,
-          attributes: {
-            exclude: ["id", "ProductId", "ProductVariantValueId"],
-          },
-        },
-        {
-          model: ProductSkus,
+          model: SkuVariations,
+          where: where,
 
           attributes: {
-            exclude: ["id", "ProductId"],
+            exclude: [
+              "id",
+              "combinationIds",
+              "ProductVariantValueId",
+              "ProductSkuId",
+              "ProductId",
+            ],
           },
           include: [
             {
-              model: SkuVariations,
+              model: ProductVariantValues,
 
-              attributes: {
-                exclude: ["id", "ProductVariantValueId", "ProductSkuId"],
-              },
+              include: [
+                {
+                  model: ProductImage,
+                },
+              ],
             },
           ],
         },
       ],
     });
+
     if (!product) {
       const err = new BadRequestError("Data Not Found");
       res.status(err.status).send({ message: err.message });
@@ -244,7 +325,14 @@ export const Get = async (req: Request, res: Response, next: NextFunction) => {
 
     const { data } = getData(product);
     if (data?.uuid) {
-      res.send({ message: "Success", data });
+      res.send({
+        message: "Success",
+        data: {
+          product,
+          ...productSku?.dataValues,
+          variantsList: productVariantsWithTypes,
+        },
+      });
     } else {
       const err = new BadRequestError("Bad Request");
       res.status(err.status).send({ message: err.message });
@@ -274,30 +362,38 @@ export const List = async (req: Request, res: Response, next: NextFunction) => {
       include: [
         {
           model: Category,
-          // as: "parent",
           attributes: {
             exclude: ["id", "parentId"],
           },
         },
-        {
-          model: ProductImage,
-          attributes: {
-            exclude: ["id", "ProductId", "ProductVariantValueId"],
-          },
-        },
-        {
-          model: ProductSkus,
 
+        {
+          model: SkuVariations,
+          where: {
+            setAsDefault: true,
+          },
           attributes: {
-            exclude: ["id", "ProductId"],
+            exclude: [
+              "id",
+              "combinationIds",
+              "ProductVariantValueId",
+              "ProductSkuId",
+              "ProductId",
+            ],
           },
           include: [
             {
-              model: SkuVariations,
+              model: ProductSkus,
+            },
 
-              attributes: {
-                exclude: ["id", "ProductVariantValueId", "ProductSkuId","ProductId"],
-              },
+            {
+              model: ProductVariantValues,
+
+              include: [
+                {
+                  model: ProductImage,
+                },
+              ],
             },
           ],
         },

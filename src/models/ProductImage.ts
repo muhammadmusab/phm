@@ -17,7 +17,7 @@ interface ProductImageModel
   url: string|null;
   alt?: CreationOptional<string>;
   ProductVariantValueId?: CreationOptional<number | null>;
-  ProductId: number;
+  ProductId?: number;
 }
 export const ProductImage = sequelize.define<ProductImageModel>(
   "ProductImage",

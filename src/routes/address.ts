@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddlewareFunction from "../middlewares/auth-middleware";
+import authMiddleware from "../middlewares/auth-middleware";
 import { Create, Delete, List, Update } from "../controllers/address";
 import { validate } from "../middlewares/validate-middleware";
 import {
@@ -14,28 +14,28 @@ const router = express.Router();
 router.post(
   "/create",
   validate(createAddressSchema),
-  authMiddlewareFunction(),
+  authMiddleware(),
   Create
 );
 
 router.put(
   "/update/:uid",
   validate(updateAddressSchema),
-  authMiddlewareFunction(),
+  authMiddleware(),
   Update
 );
 
 router.delete(
   "/delete/:uid",
   validate(deleteAddressSchema),
-  authMiddlewareFunction(),
+  authMiddleware(),
   Delete
 );
 
 router.get(
   "/list",
   validate(listAddressSchema),
-  authMiddlewareFunction(),
+  authMiddleware(),
   List
 );
 

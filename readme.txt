@@ -55,9 +55,6 @@ https://www.noon.com/uae-en/2-pack-logo-crew-neck-t-shirt/ZC2A72A4E6F29267F7B6AZ
 
 
 
-
-
-
 -------------------------------------------------------------------------------------------------------------------------
 
 1) Product Table: it will show only the common properties for the product.

@@ -21,7 +21,7 @@ export const uploadMiddleware = () => {
     },
     fileFilter(req, file, cb) {
       //filter file types that are allowed
-      if (!file.originalname.match(/\.(png|jpg|jpeg|webp)$/)) {
+      if (!file.originalname.match(/\.(png|jpg|jpeg|webp|avif)$/)) {
         //regex for accepting file that end with .jpg,jpeg,png
         return cb(new Error('Only images are allowed')); //rejecting the file
       }

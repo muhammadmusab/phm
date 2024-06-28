@@ -17,6 +17,8 @@ interface SkuVariationsModel
   ProductVariantValueId?: number | null;
   ProductId?: number | null;
   ProductSkuId?: number | null;
+  combinationIds?: number[];
+  setAsDefault?: boolean;
 }
 export const SkuVariations = sequelize.define<SkuVariationsModel>(
   "SkuVariations",
@@ -49,6 +51,15 @@ export const SkuVariations = sequelize.define<SkuVariationsModel>(
         model: "ProductSkus",
         key: "id",
       },
+    },
+    combinationIds: {
+      type: DataTypes.ARRAY(DataTypes.INTEGER),
+      allowNull: false,
+    },
+    setAsDefault: {
+      type: DataTypes.BOOLEAN,
+      // allowNull: false,
+      defaultValue:false
     },
   },
   {

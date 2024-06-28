@@ -29,7 +29,7 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      // unique: true,
       validate: {
         isEmail: true,
       },
@@ -45,14 +45,13 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
         key: "id",
       },
     },
-    SkuVariationId: {
+    ProductSkuId: {
       type: DataTypes.INTEGER,
       references: {
-        model: "SkuVariations",
+        model: "ProductSkus",
         key: "id",
       },
     },
-
     createdAt: {
       type: DataTypes.DATE,
     },

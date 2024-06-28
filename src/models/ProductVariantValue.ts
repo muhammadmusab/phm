@@ -16,6 +16,7 @@ interface ProductVariantValuesModel
   uuid: CreationOptional<string>;
   value: string;
   ProductVariantTypeId?: number | null;
+  // ProductId?: number | null;
 }
 export const ProductVariantValues = sequelize.define<ProductVariantValuesModel>(
   "ProductVariantValues",
@@ -36,11 +37,19 @@ export const ProductVariantValues = sequelize.define<ProductVariantValuesModel>(
       },
       allowNull:false
     },
+    // ProductId: {
+    //   type: DataTypes.INTEGER,
+    //   references: {
+    //     model: "Products",
+    //     key: "id",
+    //   },
+    //   allowNull:false
+    // },
   },
   {
     freezeTableName: true,
     defaultScope: {
-      attributes: { exclude: ["id", "ProductVariantTypeId"] },
+      attributes: { exclude: ["id", "ProductVariantTypeId","ProductId"] },
     },
     scopes: {
       withId: {

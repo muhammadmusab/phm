@@ -76,8 +76,8 @@ ProductReview.belongsTo(Product); //productId in ProductReview table
 
 //change this relation from ProductSkus to Sku_Variation table later when table is created-------
 
-SkuVariations.hasMany(ProductReview, { onDelete: "CASCADE" });
-ProductReview.belongsTo(SkuVariations); //SkuVariationId in ProductReview Table
+ProductSkus.hasMany(ProductReview, { onDelete: "CASCADE" });
+ProductReview.belongsTo(ProductSkus); //ProductSkuId in ProductReview Table
 
 //---- PRODUCT SKU TABLE
 // ProductSkus relation with product

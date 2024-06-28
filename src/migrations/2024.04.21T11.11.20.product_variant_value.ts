@@ -25,6 +25,14 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
       },
       allowNull:false
     },
+    // ProductId: {
+    //   type: DataTypes.INTEGER,
+    //   references: {
+    //     model: "Products",
+    //     key: "id",
+    //   },
+    //   allowNull:false
+    // },
     createdAt: {
       type: DataTypes.DATE,
     },

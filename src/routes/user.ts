@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddlewareFunction from "../middlewares/auth-middleware";
+import authMiddleware from "../middlewares/auth-middleware";
 import { Get, Update } from "../controllers/user";
 import { validate } from "../middlewares/validate-middleware";
 import { updateUserSchema} from "../schemas/user";
@@ -9,10 +9,10 @@ const router = express.Router();
 router.put(
   "/update",
   validate(updateUserSchema),
-  authMiddlewareFunction(),
+  authMiddleware(),
   Update
 );
 
-router.get("/get", authMiddlewareFunction(), Get);
+router.get("/get", authMiddleware(), Get);
 
 export default router;

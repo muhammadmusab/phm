@@ -39,6 +39,14 @@ export const up: Migration = async ({ context }: { context: Sequelize }) => {
         key: "id",
       },
     },
+    combinationIds: {
+      type: DataTypes.ARRAY(DataTypes.INTEGER),
+      allowNull: false,
+    },
+    setAsDefault: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     createdAt: {
       type: DataTypes.DATE,
     },

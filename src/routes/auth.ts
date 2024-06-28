@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddlewareFunction from "../middlewares/auth-middleware";
+import authMiddleware from "../middlewares/auth-middleware";
 import { validate } from "../middlewares/validate-middleware";
 import {
   register,
@@ -41,10 +41,10 @@ router.post("/signin", validate(loginSchema), signin);
 router.post(
   "/delete-account",
   validate(deleteAccountSchema),
-  authMiddlewareFunction(),
+  authMiddleware(),
   deleteAccount
 );
-router.get("/signout", authMiddlewareFunction(), signout);
+router.get("/signout", authMiddleware(), signout);
 router.post(
   "/reset-password-mail",
   validate(resetPasswordMailSchema),
@@ -53,10 +53,10 @@ router.post(
 router.post(
   "/reset-password-profile",
   validate(resetPasswordWithoutMailSchema),
-  authMiddlewareFunction(),
+  authMiddleware(),
   resetPasswordWithoutMail
 );
 router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 
-router.get("/refresh-token", authMiddlewareFunction(true), refreshToken);
+router.get("/refresh-token", authMiddleware(true), refreshToken);
 export default router;

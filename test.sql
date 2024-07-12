@@ -135,3 +135,11 @@ GROUP BY "ProductSkuId",
 
 
     ALTER TABLE "ProductReview" ALTER COLUMN email SET NOT NULL;
+
+    ALTER TABLE "Tax" ADD CONSTRAINT region_unique UNIQUE (region);
+    ALTER TABLE "Coupons" ADD CONSTRAINT code_unique UNIQUE (code);
+
+
+
+    ALTER TABLE "Cart" ADD COLUMN "discountPrice" NUMERIC(12,2);
+    ALTER TABLE "Shipping" ADD COLUMN "CartId" INTEGER  NOT NULL;

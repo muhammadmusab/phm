@@ -13,6 +13,14 @@ import { ProductVariantType } from "../../models/ProductVariantType";
 import { ProductTypes } from "../../models/ProductType";
 import { ProductVariantValues } from "../../models/ProductVariantValue";
 import { SkuVariations } from "../../models/SkuVariation";
+import { Cart } from "../../models/Cart";
+import { CartItem } from "../../models/CartItem";
+import { Shipping } from "../../models/Shipping";
+import { Coupons } from "../../models/Coupon";
+
+import { Payment } from "../../models/Payment";
+import { CouponCart } from "../../models/CouponCart";
+
 
 User.hasMany(Auth);
 Auth.belongsTo(User);
@@ -93,3 +101,41 @@ SkuVariations.belongsTo(ProductVariantValues); //ProductVariantValueId in SkuVar
 
 Product.hasMany(SkuVariations, { onDelete: "CASCADE" });
 SkuVariations.belongsTo(Product); //ProductId in SkuVariations table
+
+
+
+// CHECKOUT PROCESS FLOW RELATIONS
+// -----Cart
+User.hasMany(Cart, { onDelete: "CASCADE" });
+Cart.belongsTo(User); //UserId in Cart table , here user also has relation with AuthId where creds of user are stored.
+
+//------Cart Item
+Cart.hasMany(CartItem, { onDelete: "CASCADE" });
+CartItem.belongsTo(Cart); //CartId in CartItem table
+
+Product.hasMany(CartItem, { onDelete: "CASCADE" });
+CartItem.belongsTo(Product); //ProductId in CartItem table
+
+ProductSkus.hasMany(CartItem, { onDelete: "CASCADE" });
+CartItem.belongsTo(ProductSkus); //ProductSkuId in CartItem table
+ProductImage.hasMany(CartItem, { onDelete: "CASCADE" });
+CartItem.belongsTo(ProductImage); //ProductImageId in CartItem table
+
+
+
+
+
+//-----Payment
+Cart.hasMany(Payment, { onDelete: "CASCADE" });
+Payment.belongsTo(Cart); //OrderId in Payment table
+
+
+//-----Coupon
+Coupons.belongsToMany(Cart, { through: CouponCart });
+Cart.belongsToMany(Coupons, { through: CouponCart });
+
+//-----Shipping
+Cart.hasMany(Shipping, { onDelete: "CASCADE" });
+Shipping.belongsTo(Cart); //OrderId in Shipping table
+
+

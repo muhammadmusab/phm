@@ -57,7 +57,7 @@ import userRoutes from './routes/user';
 import addressRoutes from './routes/address';
 import categoryRoutes from './routes/category';
 import filterRoutes from './routes/filter';
-// product routes
+// product
 import productRoutes from './routes/product/product'
 import productImageRoutes from './routes/product/productImage'
 import productVariantRoutes from './routes/product/productVariant'
@@ -65,6 +65,13 @@ import productVariantTypeRoutes from './routes/product/productVariantType'
 import productTypesRoutes from './routes/product/productTypes'
 import productSkuRoutes from './routes/product/productSku'
 import productReviewRoutes from './routes/product/productReview'
+import productFavouritesRoutes from './routes/product/productFavourites'
+// cart
+import cartRoutes from './routes/cart/cart'
+import cartItemRoutes from './routes/cart/cartItem'
+
+import couponRoutes from './routes/coupon'
+import shippingRoutes from './routes/shipping'
 
 
 app.use('/v1/api/auth', authRoutes);
@@ -72,6 +79,7 @@ app.use('/v1/api/user', userRoutes);
 app.use('/v1/api/address', addressRoutes);
 app.use('/v1/api/category', categoryRoutes);
 app.use('/v1/api/filter', filterRoutes);
+
 // product
 app.use('/v1/api/product', productRoutes);
 app.use('/v1/api/product/image', productImageRoutes);
@@ -80,22 +88,30 @@ app.use('/v1/api/product/variant', productVariantRoutes);
 app.use('/v1/api/product/variant-type', productVariantTypeRoutes);
 app.use('/v1/api/product/sku', productSkuRoutes);
 app.use('/v1/api/product/review', productReviewRoutes);
+app.use('/v1/api/product/favourites', productFavouritesRoutes);
 
+// cart
+app.use('/v1/api/cart', cartRoutes);
+app.use('/v1/api/cart-item', cartItemRoutes);
 
+//coupon
+app.use('/v1/api/coupon',couponRoutes);
+
+//shipping
+app.use('/v1/api/shipping',shippingRoutes);
 
 //Error Handler
 app.use(errorHandler);
 
-
-
-
 const port = process.env.PORT;
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 50, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
+
 // Apply the rate limiting middleware to all requests
 app.use(limiter);
 try {
